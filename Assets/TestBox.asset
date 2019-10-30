@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b408bd41d61d3d84693779a6a302b46d, type: 3}
+  m_Name: TestBox
+  m_EditorClassIdentifier: 
+  containerName: TestBox
+  containerType: 1
+  audioClips: []
+  audioContainers:
+  - {fileID: 11400000, guid: 9642ba3d93ba8440296e454de7ea3c83, type: 2}
+  - {fileID: 11400000, guid: 9642ba3d93ba8440296e454de7ea3c83, type: 2}
+  pattern: 0
+  playWholeList: 0
+  repeat: 0
+  avoidRepeatedPlaybackCount: 0
+  playbackWeighting:
+  - 0
+  - 0
+  minWaitBeforePlaying: 0
+  maxWaitBeforePlaying: 0
+  minWaitAfterPlaying: 0
+  maxWaitAfterPlaying: 0

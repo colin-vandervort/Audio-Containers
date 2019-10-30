@@ -117,6 +117,16 @@ public class AudioContainerEditor : EditorWindow
                 GUILayout.EndHorizontal();
 
                 audioContainerList.audioContainers[viewIndex - 1].containerName = EditorGUILayout.TextField("Container Name", audioContainerList.audioContainers[viewIndex - 1].containerName as string);
+
+                //Bug when switching between fields with the text box selected.
+                string newName = audioContainerList.audioContainers[viewIndex - 1].containerName;
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    string assetPath = AssetDatabase.GetAssetPath(audioContainerList.audioContainers[viewIndex - 1].GetInstanceID());
+                    AssetDatabase.RenameAsset(assetPath, newName);
+                    AssetDatabase.SaveAssets();
+                }
+
                 audioContainerList.audioContainers[viewIndex - 1].containerType = (AudioContainer.ContainerType)EditorGUILayout.EnumPopup("Container Type", audioContainerList.audioContainers[viewIndex - 1].containerType);
 
                 SerializedObject so = new SerializedObject(audioContainerList.audioContainers[viewIndex - 1]);
@@ -146,9 +156,7 @@ public class AudioContainerEditor : EditorWindow
                         for (int i = 0; i < clipsList.arraySize; i++)
                         {
                             EditorGUILayout.PropertyField(clipsList.GetArrayElementAtIndex(i));
-                            //audioContainerList.audioContainers[viewIndex - 1].audioClips[i] = clipsList.GetArrayElementAtIndex(i);
                         }
-                        //audioContainerList.audioContainers[viewIndex - 1].audioClips = clipsList;
                         break;
                     case AudioContainer.ContainerType.Containers:
                         SerializedProperty containersList = so.FindProperty("audioContainers");
@@ -171,9 +179,7 @@ public class AudioContainerEditor : EditorWindow
                         for (int i = 0; i < containersList.arraySize; i++)
                         {
                             EditorGUILayout.PropertyField(containersList.GetArrayElementAtIndex(i));
-                            //audioContainerList.audioContainers[viewIndex - 1].audioContainers[i] = containersList.GetArrayElementAtIndex(i);
                         }
-                        //audioContainerList.audioContainers[viewIndex - 1].audioContainers = containersList;
                         break;
                     default:
                         Debug.Log("No valid container type used");
@@ -221,11 +227,9 @@ public class AudioContainerEditor : EditorWindow
                 {
                     GUILayout.EndHorizontal();
                     EditorGUILayout.PropertyField(weightingList.GetArrayElementAtIndex(i));
-                    //audioContainerList.audioContainers[viewIndex - 1].playbackWeighting[i] = weightingList.GetArrayElementAtIndex(i);
                     GUILayout.BeginHorizontal();
 
                 }
-                //audioContainerList.audioContainers[viewIndex - 1].playbackWeighting = weightingList;
 
                 GUILayout.EndHorizontal();
 
@@ -305,7 +309,7 @@ public class AudioContainerEditor : EditorWindow
             string relPath = AssetDatabase.GetAssetPath(newContainer);
             EditorPrefs.SetString("ObjectPath", relPath);
 
-            newContainer.containerName = "New Container";
+            newContainer.containerName = "NewContainer";
             audioContainerList.audioContainers.Add(newContainer);
             viewIndex = audioContainerList.audioContainers.Count;
         }
