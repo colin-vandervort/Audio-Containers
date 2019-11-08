@@ -2,13 +2,14 @@
 
 public class TriggerOneshot : MonoBehaviour
 {
-    public AudioSource audioSource;
+    public AudioContainerPlayer audioContainerPlayer;
 
     void Update()
     {
-       if( Input.GetKeyDown(KeyCode.Space))
-        {
-            audioSource.Play();
-        }
+        if (Input.GetKeyDown(KeyCode.Space))
+            audioContainerPlayer.Play();
+        
+        if (Input.GetKeyDown(KeyCode.S))
+            audioContainerPlayer.Stop();
     }
 }

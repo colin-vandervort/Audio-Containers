@@ -23,12 +23,12 @@ MonoBehaviour:
   pattern: 0
   playWholeList: 0
   repeat: 0
-  avoidRepeatedPlaybackCount: 1
+  avoidRepeatedPlaybackCount: 3
   playbackWeighting:
+  - 23
+  - 24
   - 25
-  - 25
-  - 25
-  - 25
+  - 26
   minWaitBeforePlaying: 0
   maxWaitBeforePlaying: 0
   minWaitAfterPlaying: 0

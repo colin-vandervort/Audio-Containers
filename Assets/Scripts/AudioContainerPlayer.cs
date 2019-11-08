@@ -18,21 +18,11 @@ public class AudioContainerPlayer : MonoBehaviour
     private bool clipStillPlaying;
     private bool playNextClip;
 
+    private AudioClip[] tempClipArray;
+    private float[] tempWeightingArray;
+
     //This attaches to a gameobject and talks to the audio source on it. Just sets and triggers audio clip playback.
     //Feature requests: Fades. Blend container.
-
-
-    //public bool playWholeList;               //If true, play through the whole list, rather than a single selection
-    //public bool repeat;                      //If true, repeat the playing of a clip selection or list sequence
-    //public int avoidRepeatedPlaybackCount;   //The number of audio clips that need to be played from the list before any given clip can be played again
-
-    //public float[] playbackWeighting;        //The relative weighting of playback for each option.
-
-    //public float minWaitBeforePlaying;       //The fewest number of seconds to wait before a sound or container is played
-    //public float maxWaitBeforePlaying;       //The greatest number of seconds to wait before a sound or container is played
-    //public float minWaitAfterPlaying;        //The fewest number of seconds to wait after a sound or container is played
-    //public float maxWaitAfterPlaying;        //The greatest number of seconds to wait after a sound or container is played
-
 
     //External function to call to start playback.
     public void Play()
@@ -41,7 +31,7 @@ public class AudioContainerPlayer : MonoBehaviour
         switch (audioContainer.containerType)
         {
             case AudioContainer.ContainerType.Clips:
-                PlayClips();
+                StartCoroutine(PlayClips());
                 break;
             case AudioContainer.ContainerType.Containers:
                 //PlayContainers(); 
@@ -63,55 +53,59 @@ public class AudioContainerPlayer : MonoBehaviour
         audioSource.Stop();
     }
 
-    private IEnumerable PlayClips()
+    private IEnumerator PlayClips()
     {
         playNextClip = false;
-
         //Check playback pattern
         switch (audioContainer.pattern)
         {
             case AudioContainer.Pattern.Random:
-                if (audioContainer.playWholeList) //Check if we're playing whole list and queue a 'play next'
+                //Find weighting distribution
+                float maxWeight = 0f;
+                for (int i = currentRepeatNumber; i < audioContainer.audioClips.Length; i++)
                 {
-                    //Find weighting distribution
-                    float maxWeight = 0f;
-                    for (int i = currentRepeatNumber; i < audioContainer.audioClips.Length; i++)
-                    {
-                        maxWeight += audioContainer.playbackWeighting[i];
-                    }
-
-                    int tempMarker = 0;
-
-                    //Select from weighting
-                    float playbackRoll = Random.Range(0f, maxWeight);
-                    for (int i = currentRepeatNumber; i < audioContainer.audioClips.Length; i++)
-                    {
-                        if (audioContainer.playbackWeighting[i] <= playbackRoll)
-                        {
-                            //Load next clip
-                            currentClip = audioContainer.audioClips[i];
-                            currentRepeatNumber++;
-                        }
-                        else
-                            break;
-                    }
-
-                    //Move recently played to the front of the list for random clips & random weighting values.
-                    AudioClip[] tempClipArray = audioContainer.audioClips;
-                    float[] tempWeightingArray = audioContainer.playbackWeighting;
-
-                    tempClipArray[0] = audioContainer.audioClips[tempMarker];
-                    tempWeightingArray[0] = audioContainer.playbackWeighting[tempMarker];
-
-                    for (int i = 0; i < tempMarker; i++) //Might be tempMarker - 1 ~~Test this
-                    {
-                        tempClipArray[i + 1] = audioContainer.audioClips[i];
-                        tempWeightingArray[i + 1] = audioContainer.playbackWeighting[i];
-                    }
-
-                    audioContainer.audioClips = tempClipArray;
-                    audioContainer.playbackWeighting = tempWeightingArray;
+                    maxWeight += audioContainer.playbackWeighting[i];
                 }
+                
+                int tempMarker = 0; //Something wrong with the way this is interacting.
+
+                float minWeight = 0f;
+                for (int i = 0; i < currentRepeatNumber; i++)
+                {
+                    minWeight += audioContainer.playbackWeighting[i];
+                }
+                
+                //Select from weighting
+                float playbackRoll = Random.Range(minWeight, maxWeight + minWeight);
+                
+                for (int i = currentRepeatNumber; i < audioContainer.audioClips.Length; i++)
+                {
+                    minWeight += audioContainer.playbackWeighting[i];
+                    if (minWeight >= playbackRoll)
+                    {
+                        //Load next clip
+                        currentClip = audioContainer.audioClips[i];
+                        //currentRepeatNumber++;
+                        tempMarker = i;
+                        break;
+                    }
+                }
+                
+                //Move recently played to the front of the list for random clips & random weighting values.
+                tempClipArray = audioContainer.audioClips;
+                tempWeightingArray = audioContainer.playbackWeighting;
+
+                tempClipArray[0] = audioContainer.audioClips[tempMarker];
+                tempWeightingArray[0] = audioContainer.playbackWeighting[tempMarker];
+
+                for (int i = 0; i < tempMarker; i++) //Might be tempMarker - 1 ~~Test this
+                {
+                    tempClipArray[i + 1] = audioContainer.audioClips[i];
+                    tempWeightingArray[i + 1] = audioContainer.playbackWeighting[i];
+                }
+
+                audioContainer.audioClips = tempClipArray;
+                audioContainer.playbackWeighting = tempWeightingArray;
                 break;
             case AudioContainer.Pattern.Sequential:
                 //Load current and next clip
@@ -146,7 +140,10 @@ public class AudioContainerPlayer : MonoBehaviour
         audioSource.clip = currentClip;
         audioSource.Play();
 
-        if((audioContainer.repeat || audioContainer.playWholeList) && !audioSource.isPlaying)
+        if (currentRepeatNumber < audioContainer.avoidRepeatedPlaybackCount && currentRepeatNumber < audioContainer.audioClips.Length - 1)
+            currentRepeatNumber++;
+
+        if ((audioContainer.repeat || audioContainer.playWholeList) && !audioSource.isPlaying)
         {
             //End clip wait
             yield return new WaitForSeconds(Random.Range(audioContainer.minWaitAfterPlaying, audioContainer.maxWaitAfterPlaying));
@@ -204,8 +201,6 @@ public class AudioContainerPlayer : MonoBehaviour
         clipStillPlaying = audioSource.isPlaying;
         if(playNextClip)
         {
-            if (currentRepeatNumber < audioContainer.avoidRepeatedPlaybackCount && currentRepeatNumber < audioContainer.audioClips.Length - 1)
-                currentRepeatNumber++;
             PlayClips();
         }
     }
